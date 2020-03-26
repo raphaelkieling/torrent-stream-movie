@@ -9,4 +9,7 @@ This is a experimental project to stream torrent magnet links movies.
 
 ### A simple print
 
-<img src="./assets/print01.png" width="300">
+<div align="center">
+    <img src="./assets/print01.png" width="300">
+</div>
+
