@@ -7,4 +7,6 @@
 
 This is a experimental project to stream torrent magnet links movies.
 
-![Print](./assets/print01.png)
+## A simple print
+
+<img src="./assets/print01.png" width="300">
