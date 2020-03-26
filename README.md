@@ -5,7 +5,7 @@
 
 ### Description
 
-This is a experimental project to stream torrent magnet links movies.
+This is a experimental project to stream movies magnet links using golang.
 
 ### A simple print
 
