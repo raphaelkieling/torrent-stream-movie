@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/anacrolix/torrent"
@@ -27,9 +28,10 @@ func getLargestFile(torrentTorrent *torrent.Torrent) *torrent.File {
 
 func main() {
 	clientConfig := torrent.NewDefaultClientConfig()
+	clientConfig.DataDir = os.TempDir()
 
-	c, _ := torrent.NewClient(clientConfig)
-	defer c.Close()
+	clientTorrent, _ := torrent.NewClient(clientConfig)
+	defer clientTorrent.Close()
 
 	http.HandleFunc("/streaming", func(w http.ResponseWriter, r *http.Request) {
 		magnet, okQuery := r.URL.Query()["magnet"]
@@ -38,19 +40,19 @@ func main() {
 			fmt.Println("Error on got query")
 		}
 
-		t, _ := c.AddMagnet(magnet[0])
-		<-t.GotInfo()
-		t.DownloadAll()
+		torrentMagnet, _ := clientTorrent.AddMagnet(magnet[0])
+		<-torrentMagnet.GotInfo()
+		torrentMagnet.DownloadAll()
 		// set the 5% priority of the file
-		largestFile := getLargestFile(t)
-		firstPieceIndex := largestFile.Offset() * int64(t.NumPieces()) / t.Length()
-		endPieceIndex := (largestFile.Offset() + largestFile.Length()) * int64(t.NumPieces()) / t.Length()
-		for idx := firstPieceIndex; idx <= endPieceIndex*5/100; idx++ {
-			t.Piece(int(idx)).SetPriority(torrent.PiecePriorityNow)
-		}
 
-		target := getLargestFile(t)
+		target := getLargestFile(torrentMagnet)
 		reader := target.NewReader()
+
+		firstPieceIndex := target.Offset() * int64(torrentMagnet.NumPieces()) / torrentMagnet.Length()
+		endPieceIndex := (target.Offset() + target.Length()) * int64(torrentMagnet.NumPieces()) / torrentMagnet.Length()
+		for idx := firstPieceIndex; idx <= endPieceIndex*5/100; idx++ {
+			torrentMagnet.Piece(int(idx)).SetPriority(torrent.PiecePriorityNow)
+		}
 
 		// We read ahead 1% of the file continuously.
 		reader.SetReadahead(target.Length() / 100)
